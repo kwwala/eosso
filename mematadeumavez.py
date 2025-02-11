@@ -19,7 +19,7 @@ squareSize = 32
 velocity = 5
 
 # níveis
-level = 1
+level = 3.5
 maxlevel = 100 # placeholder
 newlevel = True
 
@@ -39,6 +39,11 @@ platform.fill((196, 196, 196))
 bonesize = squareSize
 bonex, boney = width, 300
 bone = pygame.image.load("images/bone.png")
+
+flippedbonex, flippedboney = width, 0
+flippedbone = pygame.transform.flip(bone, False, True) 
+
+
 
 # bordas
 borders = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -142,7 +147,34 @@ while True:
         level += .5
         newlevel = True
     elif level == 3:
-        exit()
+        bonex -= 4
+        flippedbonex -= 4
+        if bonex <= -8:
+            level += .5
+    elif level == 3.5:
+        bonex = width
+        flippedbonex = width
+        boney = (height / 2) + 32
+        flippedboney = (height / 2) - (32 + 240)
+        level += .5
+        newlevel = True
+        bonedirection = 1  # 1 para subir, -1 para descer
+    elif level == 4:
+        bonex -= 4
+        flippedbonex -= 4
+
+        # Verifica limites para mudar a direção
+        if boney >= 360:
+            bonedirection = -1
+        elif boney <= 240:
+            bonedirection = 1
+
+        # Atualiza as posições com base na direção
+        boney += bonedirection
+        flippedboney += bonedirection
+
+        if bonex <= -8:
+            level += 0.5
     else:
         print('algo aconteceu') # vai que eu mecho e acabo bugando algo e pulando
         exit()
@@ -151,7 +183,9 @@ while True:
     # Criar retângulos para detecção de colisão
     heart_rect = pygame.Rect(new_x, y, squareSize, squareSize)
     platform_rect = pygame.Rect(blockx, blocky, blocksize, blocksize)
-    bones_rect = pygame.Rect(bonex, boney, 6, 1000)
+    bones_rect = pygame.Rect(bonex, boney, 6, 240)
+    flippedbone_rect = pygame.Rect(flippedbonex, flippedboney, 6, 240)
+    
 
     # Verificar colisão no eixo X
     if heart_rect.colliderect(platform_rect):
@@ -173,9 +207,11 @@ while True:
     
     screen.blit(block, (blockx, blocky))
     screen.blit(bone, (bonex, boney))
+    screen.blit(flippedbone, (flippedbonex, flippedboney))
+    
     screen.blit(borders, (0, 0))
 
-    if heart_rect.colliderect(bones_rect):
+    if heart_rect.colliderect(bones_rect) or heart_rect.colliderect(flippedbone_rect):
         # animação de morte real
         heart = pygame.image.load("images/heart64x.png")
         screen.fill((0, 0, 0))
