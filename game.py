@@ -7,19 +7,21 @@ pygame.init()
 screen = pygame.display.set_mode((640, 480))
 clock = pygame.time.Clock()
 width, height = screen.get_size()
+pygame.display.set_caption("É Osso")
+icon = pygame.image.load("images/shadedicon.png").convert_alpha()
+pygame.display.set_icon(icon)
 
 # coisas úteis
 font = pygame.font.Font(None, 40)
 
 # jogador/coração
-heart = pygame.image.load("images/heart32x.png")
-heart = heart.convert()
+heart = pygame.image.load("images/heart32x.png").convert_alpha()
 x, y = (width / 2) - 32, (height / 2) - 32
 squareSize = 32
 velocity = 5
 
 # níveis
-level = 3.5
+level = 1
 maxlevel = 100 # placeholder
 newlevel = True
 
@@ -37,13 +39,11 @@ platform.fill((196, 196, 196))
 
 # ossos
 bonesize = squareSize
-bonex, boney = width, 300
+bonex, boney = width, 256
 bone = pygame.image.load("images/bone.png")
 
-flippedbonex, flippedboney = width, 0
+flippedbonex, flippedboney = width, -128
 flippedbone = pygame.transform.flip(bone, False, True) 
-
-
 
 # bordas
 borders = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -60,10 +60,27 @@ borderup.fill((255, 255, 255))
 borderdown = pygame.Surface([width - 16, 8])
 borderdown.fill((255, 255, 255))
 
+blackborderleft = pygame.Surface([8, height])
+blackborderleft.fill((0, 0, 0))
+
+blackborderright = pygame.Surface([8, height])
+blackborderright.fill((0, 0, 0))
+
+blackborderup = pygame.Surface([width, 8])
+blackborderup.fill((0, 0, 0))
+
+blackborderdown = pygame.Surface([width, 8])
+blackborderdown.fill((0, 0, 0))
+
 borders.blit(borderleft, (8, 8))
 borders.blit(borderright, (width - 16, 8))
 borders.blit(borderup, (8, 8))
 borders.blit(borderdown, (8, height - 16))
+
+borders.blit(blackborderleft, (0, 0))
+borders.blit(blackborderright, (width - 8, 8))
+borders.blit(blackborderup, (0, 0))
+borders.blit(blackborderdown, (0, height - 8))
 
 # sons
 sound1 = pygame.mixer.Sound('sounds/death1.wav')
@@ -130,89 +147,82 @@ while True:
     new_x = x + dx
     new_y = y + dy
 
+    # níveis
     if level == 1:
         bonex -= 2
         if bonex <= -8:
-            level += .5
-    elif level == 1.5:
-        bonex = width
-        level += .5
-        newlevel = True
+            level += 1
+            bonex = width
+            level += 1
+            newlevel = True
     elif level == 2:
         bonex -= 4
         if bonex <= -8:
-            level += .5
-    elif level == 2.5:
-        bonex = width
-        level += .5
-        newlevel = True
+            bonex = width
+            level += 1
+            newlevel = True
     elif level == 3:
         bonex -= 4
         flippedbonex -= 4
         if bonex <= -8:
-            level += .5
-    elif level == 3.5:
-        bonex = width
-        flippedbonex = width
-        boney = (height / 2) + 32
-        flippedboney = (height / 2) - (32 + 240)
-        level += .5
-        newlevel = True
-        bonedirection = 1  # 1 para subir, -1 para descer
+            level += 1
+            bonex = width
+            flippedbonex = width
+            newlevel = True
+            bonedirection = -1  # 1 para subir, -1 para descer
     elif level == 4:
         bonex -= 4
         flippedbonex -= 4
 
-        # Verifica limites para mudar a direção
-        if boney >= 360:
+        if boney >= 320:
             bonedirection = -1
-        elif boney <= 240:
+        elif boney <= 250:
             bonedirection = 1
 
-        # Atualiza as posições com base na direção
         boney += bonedirection
         flippedboney += bonedirection
 
         if bonex <= -8:
-            level += 0.5
+            level += 1
+            bonex = width
+            flippedbonex = width
+            newlevel = True
+            bonedirection = -1  # 1 para subir, -1 para descer
     else:
         print('algo aconteceu') # vai que eu mecho e acabo bugando algo e pulando
         exit()
 
-    
-    # Criar retângulos para detecção de colisão
+    # rects
     heart_rect = pygame.Rect(new_x, y, squareSize, squareSize)
-    platform_rect = pygame.Rect(blockx, blocky, blocksize, blocksize)
-    bones_rect = pygame.Rect(bonex, boney, 6, 240)
-    flippedbone_rect = pygame.Rect(flippedbonex, flippedboney, 6, 240)
-    
+    bones_rect = pygame.Rect(bonex + 4, boney, 24, 320)
+    flippedbone_rect = pygame.Rect(flippedbonex + 4, flippedboney, 24, 320)
+    # platform_rect = pygame.Rect(blockx, blocky, blocksize, blocksize)
 
-    # Verificar colisão no eixo X
-    if heart_rect.colliderect(platform_rect):
-        if dx > 0:  # Movendo para a direita
-            new_x = platform_rect.left - squareSize
-        elif dx < 0:  # Movendo para a esquerda
-            new_x = platform_rect.right
+    # colisão com plataforma
+    # if heart_rect.colliderect(platform_rect):
+    #     if dx > 0:  # Movendo para a direita
+    #         new_x = platform_rect.left - squareSize
+    #     elif dx < 0:  # Movendo para a esquerda
+    #         new_x = platform_rect.right
 
-    # Atualizar o retângulo temporário após ajuste no X
+    # atualizar o retângulo temporário
     heart_rect = pygame.Rect(x, new_y, squareSize, squareSize)
-
-    # Atualizar a posição final após colisão
+    
+    # atualizar a posição final após colisão
     x, y = limitposition(new_x, new_y)
 
-    # Renderização
+    # renderização (blit)
     screen.fill((0, 0, 0))
-    screen.blit(platform, (platformx, platformy))
+    # screen.blit(platform, (platformx, platformy))
+    # screen.blit(block, (blockx, blocky))
     screen.blit(heart, (x, y))
-    
-    screen.blit(block, (blockx, blocky))
     screen.blit(bone, (bonex, boney))
     screen.blit(flippedbone, (flippedbonex, flippedboney))
     
     screen.blit(borders, (0, 0))
 
-    if heart_rect.colliderect(bones_rect) or heart_rect.colliderect(flippedbone_rect):
-        # animação de morte real
+    # morte
+    if heart_rect.colliderect(bones_rect) or heart_rect.colliderect(flippedbone_rect): 
         heart = pygame.image.load("images/heart64x.png")
         screen.fill((0, 0, 0))
         offset = 16  # Valor do offset em pixels
