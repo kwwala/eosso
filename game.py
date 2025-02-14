@@ -103,12 +103,16 @@ def diagonalmovement(keys):
 
 offset = 16
 
-import pygame
 
 # Variáveis de controle do tempo
-start_time = 0
+start_time = pygame.time.get_ticks()
 display_stage = 0
 offset = 16
+start_time = pygame.time.get_ticks()
+show_overlay = True
+overlay_displayed = False
+wait_time = 1000
+
 def deathscreen():
     global start_time, display_stage
     heart = pygame.image.load("images/heart64x.png")
@@ -116,85 +120,42 @@ def deathscreen():
     font = pygame.font.Font(None, 36)  # Fonte para as mensagens
     offset = 16
 
-    # Preenche a tela com a cor preta
     screen.fill((0, 0, 0))
-    
-    # Lógica para alternar entre as etapas
-    if display_stage == 0:
-        # Exibe o coração normal
-        screen.blit(heart, (x - offset, y - offset))
-        sound1.play()
-    elif display_stage == 1:
-        # Exibe o coração quebrado
-        screen.blit(heart_dead, (x - offset, y - offset))
-        sound2.play()
-    elif display_stage == 2:
-        # Tela preta antes de mostrar a mensagem final
-        screen.fill((0, 0, 0))
-        sound3.play()
-    elif display_stage == 3:
-        # Exibe a mensagem final
-        surface_youdied = font.render(f"Você morreu.", True, 'white')
-        surface_levelreached = font.render(f"Você chegou no nível {level: .0f}.", True, 'white')
-        surface_maxlevelreached = font.render(f"Seu recorde é o nível {maxlevel: .0f}.", True, 'white')
-        screen.blit(surface_youdied, (width / 4, text_render_y - 50))
-        screen.blit(surface_levelreached, (width / 4, text_render_y - 25))
-        screen.blit(surface_maxlevelreached, (width / 4, text_render_y))
-
-    pygame.display.flip()
-
-    # Atualiza o estágio com base no tempo decorrido
-    if pygame.time.get_ticks() - start_time > 1000:  # Se passaram 1 segundo
-        display_stage += 1
-        start_time = pygame.time.get_ticks()  # Reinicia o contador
-
-    # Verifica se todas as etapas foram exibidas
-    if display_stage > 3:
-        exit()
-
-    # coração
-    heart = pygame.image.load("images/heart64x.png")
-    screen.fill((0, 0, 0))
-    offset = 16  # Valor do offset em pixels
+    pygame.mixer.music.stop()
     screen.blit(heart, (x - offset, y - offset))
     sound1.play()
     pygame.display.flip()
-    time.sleep(1)
-
-    # coração quebrado
-    heart = pygame.image.load("images/heartdead64x.png")
+    pygame.time.delay(1000)
     screen.fill((0, 0, 0))
-    screen.blit(heart, (x - offset, y - offset))
+    screen.blit(heart_dead, (x - offset, y - offset))
     sound2.play()
     pygame.display.flip()
-    time.sleep(1)
-
-    # tela preta
-    screen.fill((0, 0, 0)) # ir pro menu do jogo
-    pygame.display.flip()
+    pygame.time.delay(1000)
+    screen.fill((0, 0, 0))
     sound3.play()
-    time.sleep(1)
-
-    # you died
+    pygame.display.flip()
+    pygame.time.delay(1000)
     surface_youdied = font.render(f"Você morreu.", True, 'white')
     surface_levelreached = font.render(f"Você chegou no nível {level: .0f}.", True, 'white')
     surface_maxlevelreached = font.render(f"Seu recorde é o nível {maxlevel: .0f}.", True, 'white')
-    screen.blit(surface_youdied, (width / 4, text_render_y - 50))
-    screen.blit(surface_levelreached, (width / 4, text_render_y - 25))
-    screen.blit(surface_maxlevelreached, (width / 4, text_render_y))
+    screen.blit(surface_youdied, (width / 4, (width / 2) - 50))
+    screen.blit(surface_levelreached, (width / 4, (width / 2) - 25))
+    screen.blit(surface_maxlevelreached, (width / 4, (width / 2)))
     pygame.display.flip()
-    time.sleep(1)
+    while not CLICADO:
+        pygame.display.flip()
     exit()
 
+import pygame
 
-def newleveltext():
+def newlevel():
     pygame.mixer.music.pause()
     overlay = pygame.Surface((width, height), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 128))  # RGBA: vermelho com 50% de transparência
     screen.blit(overlay, (0, 0))
     pygame.display.flip()
     soundnewlevel1.play()
-    time.sleep(1)
+    pygame.time.delay(1000)
     surface_level = font.render(f"Nível: {level: .0f}", True, 'white')
     surface_maxlevel = font.render(f"Recorde: {maxlevel: .0f}", True, 'white')
     text_render_x = (width // 2) - surface_level.get_width() // 2
@@ -203,7 +164,7 @@ def newleveltext():
     screen.blit(surface_maxlevel, ((width // 2) - surface_level.get_width() // 2, text_render_y + 17))
     pygame.display.flip()
     soundnewlevel2.play()
-    time.sleep(1)
+    pygame.time.delay(1000)
     soundnewlevel1.play()
     pygame.mixer.music.unpause()
 
@@ -217,10 +178,12 @@ while True:
     keys = pygame.key.get_pressed()
     dx = dy = 0
 
-    pygame.mixer.music.pause()
+    
 
     if newlevel:
-        newleveltext()
+        if level == 1:
+            pygame.mixer.music.play()
+        newlevel()
         newlevel = False
         
 
@@ -246,21 +209,21 @@ while True:
     # níveis
     if level == 1:
         bonex -= 2
-        if bonex <= -8:
+        if bonex <= -16:
             level += 1
             bonex = width
             level += 1
             newlevel = True
     elif level == 2:
         bonex -= 4
-        if bonex <= -8:
+        if bonex <= -16:
             bonex = width
             level += 1
             newlevel = True
     elif level == 3:
         bonex -= 4
         flippedbonex -= 4
-        if bonex <= -8:
+        if bonex <= -16:
             level += 1
             bonex = width
             flippedbonex = width
@@ -278,7 +241,7 @@ while True:
         boney += bonedirection
         flippedboney += bonedirection
 
-        if bonex <= -8:
+        if bonex <= -16:
             level += 1
             bonex = width
             flippedbonex = width
