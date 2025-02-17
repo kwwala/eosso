@@ -6,13 +6,13 @@ import time
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
 clock = pygame.time.Clock()
-width, height = screen.get_size()
 pygame.display.set_caption("É Osso")
 icon = pygame.image.load("images/shadedicon.png").convert_alpha()
 pygame.display.set_icon(icon)
 
 # coisas úteis
 font = pygame.font.Font(None, 40)
+width, height = screen.get_size()
 
 # jogador/coração
 heart = pygame.image.load("images/heart32x.png").convert_alpha()
@@ -117,7 +117,7 @@ def deathscreen():
     global start_time, display_stage
     heart = pygame.image.load("images/heart64x.png")
     heart_dead = pygame.image.load("images/heartdead64x.png")
-    font = pygame.font.Font(None, 36)  # Fonte para as mensagens
+    font = pygame.font.Font(None, 36)
     offset = 16
 
     screen.fill((0, 0, 0))
@@ -142,9 +142,14 @@ def deathscreen():
     screen.blit(surface_levelreached, (width / 4, (width / 2) - 25))
     screen.blit(surface_maxlevelreached, (width / 4, (width / 2)))
     pygame.display.flip()
-    while not CLICADO:
-        pygame.display.flip()
-    exit()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                exit()
+                break
+            pygame.display.flip()
+            clock.tick(60)
 
 import pygame
 
@@ -156,6 +161,7 @@ def newlevel():
     pygame.display.flip()
     soundnewlevel1.play()
     pygame.time.delay(1000)
+
     surface_level = font.render(f"Nível: {level: .0f}", True, 'white')
     surface_maxlevel = font.render(f"Recorde: {maxlevel: .0f}", True, 'white')
     text_render_x = (width // 2) - surface_level.get_width() // 2
@@ -165,6 +171,7 @@ def newlevel():
     pygame.display.flip()
     soundnewlevel2.play()
     pygame.time.delay(1000)
+
     soundnewlevel1.play()
     pygame.mixer.music.unpause()
 
