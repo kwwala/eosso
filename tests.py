@@ -1,33 +1,36 @@
 import pygame
-import time
 
+# Inicializa o pygame
 pygame.init()
-screen = pygame.display.set_mode((640, 480))
-clock = pygame.time.Clock()
-# Criando o objeto Font. O primeiro argumento é uma string que indica a fonte a ser utilizada.
-# O valor None faz com que o pygame use sua fonte padrão. O segundo argumento indica o tamanho da fonte.
-font = pygame.font.Font(None, 40)
 
+# Configurações da tela
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Retângulo Transparente")
 width, height = screen.get_size()
 
-level = 12
-maxlevel = 100
-newlevel = True
+# Cores
+BRANCO = (255, 255, 255)
+TRANSPARENTE = (0, 0, 0, 0)  # Cor de fundo totalmente transparente
 
+# Criando uma superfície transparente
 
-width, height = screen.get_size()
+borda = pygame.Surface((width - 16, height - 16), pygame.SRCALPHA)
+borda.fill((0, 0, 0, 0))
 
-soundnewlevel1 = pygame.mixer.Sound('sounds/newlevel1.wav')
-soundnewlevel2 = pygame.mixer.Sound('sounds/newlevel2.wav')
+# Loop principal
+rodando = True
+while rodando:
+    screen.fill((30, 30, 30))  # Fundo escuro para contraste
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            rodando = False
 
+    # Desenhando o retângulo transparente
+    screen.blit(borda, (300, 250))
+    pygame.draw.rect(screen, "black", (0, 0, width, height), 8)
+    pygame.draw.rect(screen, "white", (8, 8, width - 16, height - 16), 8)
 
-while True:
-  for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      pygame.quit()
-  screen.fill((0, 0, 0)) # apaga o quadro atual
-  screen.fill((0, 0, 0))
-  outline = pygame.Rect((8, 8), (width - 16, height - 16))
-  pygame.draw.rect(outline, "white", 8, 24)
-  pygame.display.flip() # Desenha o quadro atual na tela
-  clock.tick(60)
+    # Atualiza a tela
+    pygame.display.flip()
+
+pygame.quit()

@@ -45,49 +45,14 @@ bone = pygame.image.load("images/bone.png")
 flippedbonex, flippedboney = width, -128
 flippedbone = pygame.transform.flip(bone, False, True) 
 
-# bordas
-borders = pygame.Surface((width, height), pygame.SRCALPHA)
-
-borderleft = pygame.Surface([8, height - 16])
-borderleft.fill((255, 255, 255))
-
-borderright = pygame.Surface([8, height - 16])
-borderright.fill((255, 255, 255))
-
-borderup = pygame.Surface([width - 16, 8])
-borderup.fill((255, 255, 255))
-
-borderdown = pygame.Surface([width - 16, 8])
-borderdown.fill((255, 255, 255))
-
-blackborderleft = pygame.Surface([8, height])
-blackborderleft.fill((0, 0, 0))
-
-blackborderright = pygame.Surface([8, height])
-blackborderright.fill((0, 0, 0))
-
-blackborderup = pygame.Surface([width, 8])
-blackborderup.fill((0, 0, 0))
-
-blackborderdown = pygame.Surface([width, 8])
-blackborderdown.fill((0, 0, 0))
-
-borders.blit(borderleft, (8, 8))
-borders.blit(borderright, (width - 16, 8))
-borders.blit(borderup, (8, 8))
-borders.blit(borderdown, (8, height - 16))
-
-borders.blit(blackborderleft, (0, 0))
-borders.blit(blackborderright, (width - 8, 8))
-borders.blit(blackborderup, (0, 0))
-borders.blit(blackborderdown, (0, height - 8))
-
 # sons
 sound1 = pygame.mixer.Sound('sounds/death1.wav')
 sound2 = pygame.mixer.Sound('sounds/death2.wav')
 sound3 = pygame.mixer.Sound('sounds/death3.wav')
 soundnewlevel1 = pygame.mixer.Sound('sounds/newlevel1.wav')
 soundnewlevel2 = pygame.mixer.Sound('sounds/newlevel2.wav')
+
+# músicas de fundo
 pygame.mixer.music.load("sounds/sans.ogg")
 
 rect_x, rect_y, rect_width, rect_height = 200, 200, 100, 100
@@ -107,7 +72,6 @@ offset = 16
 # Variáveis de controle do tempo
 start_time = pygame.time.get_ticks()
 display_stage = 0
-offset = 16
 start_time = pygame.time.get_ticks()
 show_overlay = True
 overlay_displayed = False
@@ -118,42 +82,49 @@ def deathscreen():
     heart = pygame.image.load("images/heart64x.png")
     heart_dead = pygame.image.load("images/heartdead64x.png")
     font = pygame.font.Font(None, 36)
-    offset = 16
 
     screen.fill((0, 0, 0))
     pygame.mixer.music.stop()
-    screen.blit(heart, (x - offset, y - offset))
+    screen.blit(heart, (x - 16, y - 16))
     sound1.play()
     pygame.display.flip()
     pygame.time.delay(1000)
+
     screen.fill((0, 0, 0))
-    screen.blit(heart_dead, (x - offset, y - offset))
+    screen.blit(heart_dead, (x - 16, y - 16))
     sound2.play()
     pygame.display.flip()
     pygame.time.delay(1000)
+
     screen.fill((0, 0, 0))
     sound3.play()
     pygame.display.flip()
     pygame.time.delay(1000)
+
     surface_youdied = font.render(f"Você morreu.", True, 'white')
     surface_levelreached = font.render(f"Você chegou no nível {level: .0f}.", True, 'white')
     surface_maxlevelreached = font.render(f"Seu recorde é o nível {maxlevel: .0f}.", True, 'white')
-    screen.blit(surface_youdied, (width / 4, (width / 2) - 50))
-    screen.blit(surface_levelreached, (width / 4, (width / 2) - 25))
-    screen.blit(surface_maxlevelreached, (width / 4, (width / 2)))
+    screen.blit(surface_youdied, (width / 4, (width / 3) - 50))
+    screen.blit(surface_levelreached, (width / 4, (width / 3) - 25))
+    screen.blit(surface_maxlevelreached, (width / 4, (width / 3)))
     pygame.display.flip()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
+                # enquanto eu não faço o 
+                pygame.quit()
                 exit()
                 break
+            elif event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
             pygame.display.flip()
             clock.tick(60)
 
 import pygame
 
-def newlevel():
+def newlevelscreen():
     pygame.mixer.music.pause()
     overlay = pygame.Surface((width, height), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 128))  # RGBA: vermelho com 50% de transparência
@@ -185,14 +156,11 @@ while True:
     keys = pygame.key.get_pressed()
     dx = dy = 0
 
-    
-
     if newlevel:
         if level == 1:
             pygame.mixer.music.play()
-        newlevel()
+        newlevelscreen()
         newlevel = False
-        
 
     # Movimentação
     if keys[pygame.K_UP] or keys[pygame.K_w]:
@@ -285,7 +253,8 @@ while True:
     screen.blit(bone, (bonex, boney))
     screen.blit(flippedbone, (flippedbonex, flippedboney))
     
-    screen.blit(borders, (0, 0))
+    pygame.draw.rect(screen, "black", (0, 0, width, height), 8)
+    pygame.draw.rect(screen, "white", (8, 8, width - 16, height - 16), 8)
 
     # morte
     if heart_rect.colliderect(bones_rect) or heart_rect.colliderect(flippedbone_rect): 
