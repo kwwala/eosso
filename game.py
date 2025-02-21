@@ -1,6 +1,7 @@
 import pygame
 import math
 import time
+import os
 
 # básico pygame
 pygame.init()
@@ -11,7 +12,9 @@ icon = pygame.image.load("images/shadedicon.png").convert_alpha()
 pygame.display.set_icon(icon)
 
 # coisas úteis
-font = pygame.font.Font(None, 40)
+font_path = os.path.join(os.path.dirname(__file__), "fonts", "minecraftia.ttf")
+font = pygame.font.Font(font_path, 24)
+print(font_path)
 width, height = screen.get_size()
 
 # jogador/coração
@@ -22,7 +25,7 @@ velocity = 5
 
 # níveis
 level = 1
-maxlevel = 100 # placeholder
+maxlevel = 3 # placeholder
 newlevel = True
 
 # plataforma
@@ -78,13 +81,14 @@ overlay_displayed = False
 wait_time = 1000
 
 def deathscreen():
-    global start_time, display_stage
+    global start_time, display_stage, maxlevel, font
     heart = pygame.image.load("images/heart64x.png")
     heart_dead = pygame.image.load("images/heartdead64x.png")
-    font = pygame.font.Font(None, 36)
 
     screen.fill((0, 0, 0))
+    pygame.mixer.music.unload()
     pygame.mixer.music.stop()
+
     screen.blit(heart, (x - 16, y - 16))
     sound1.play()
     pygame.display.flip()
@@ -101,20 +105,26 @@ def deathscreen():
     pygame.display.flip()
     pygame.time.delay(1000)
 
+    pygame.mixer.music.load("sounds/determination.ogg")
+    pygame.mixer.music.play()
     surface_youdied = font.render(f"Você morreu.", True, 'white')
-    surface_levelreached = font.render(f"Você chegou no nível {level: .0f}.", True, 'white')
-    surface_maxlevelreached = font.render(f"Seu recorde é o nível {maxlevel: .0f}.", True, 'white')
-    screen.blit(surface_youdied, (width / 4, (width / 3) - 50))
-    screen.blit(surface_levelreached, (width / 4, (width / 3) - 25))
-    screen.blit(surface_maxlevelreached, (width / 4, (width / 3)))
+    surface_levelreached = font.render(f"Você chegou no Nível {level: .0f}.", True, 'white')
+    if level > maxlevel:
+        surface_maxlevelreached = font.render(f"Você bateu seu recorde de {maxlevel: .0f}!", True, 'white')
+        maxlevel = level
+    else:
+        surface_maxlevelreached = font.render(f"Seu recorde e o Nível {maxlevel: .0f}.", True, 'white')
+    screen.blit(surface_youdied, (width / 4, (width / 4) - 50))
+    screen.blit(surface_levelreached, (width / 4, (width / 4) - 25))
+    screen.blit(surface_maxlevelreached, (width / 4, (width / 4)))
     pygame.display.flip()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                # enquanto eu não faço o 
+                
                 pygame.quit()
-                exit()
+                exit() # enquanto eu não faço tudo direitinho eu coloco pra fechar a janela pra ver se funciona o básico
                 break
             elif event.type == pygame.QUIT:
                 pygame.quit()
@@ -132,7 +142,7 @@ def newlevelscreen():
     pygame.display.flip()
     soundnewlevel1.play()
     pygame.time.delay(1000)
-
+    
     surface_level = font.render(f"Nível: {level: .0f}", True, 'white')
     surface_maxlevel = font.render(f"Recorde: {maxlevel: .0f}", True, 'white')
     text_render_x = (width // 2) - surface_level.get_width() // 2
@@ -187,7 +197,6 @@ while True:
         if bonex <= -16:
             level += 1
             bonex = width
-            level += 1
             newlevel = True
     elif level == 2:
         bonex -= 4
@@ -258,7 +267,6 @@ while True:
 
     # morte
     if heart_rect.colliderect(bones_rect) or heart_rect.colliderect(flippedbone_rect): 
-        
         deathscreen()
 
     pygame.display.flip()
