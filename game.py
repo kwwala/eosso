@@ -3,22 +3,22 @@ import math
 import os
 
 # Initialize pygame
+pygame.display.set_caption("É Osso")
+icon = pygame.image.load('images/shadedicon.png')
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
+pygame.display.set_icon(icon)
 clock = pygame.time.Clock()
-pygame.display.set_icon(pygame.image.load('images/shadedicon.png'))
-pygame.display.set_caption("É Osso")
 
 # Setup resources
-fontPath = os.path.join(os.path.dirname(__file__), "fonts", "minecraftia.ttf")
-font = pygame.font.Font(fontPath, 24)
+font = pygame.font.Font("fonts/minecraftia.ttf", 24)
 width, height = screen.get_size()
 
 # Game state variables
 level = 1
-maxLevel = 3
+maxLevel = level
 newLevel = True
-squareSize = 32
+heartSize = 32
 velocity = 5
 
 # Player setup
@@ -328,7 +328,7 @@ def mainGame():
             amountFlippedBones = [b for b in amountFlippedBones if b["x"] > -24]
 
             # Collision detection
-            heartRect = pygame.Rect(newX, y, squareSize, squareSize)
+            heartRect = pygame.Rect(newX, y, heartSize, heartSize)
             
             allAmountBones = amountBones + amountFlippedBones
 
@@ -391,7 +391,7 @@ def mainGame():
             amountFlippedBones = [b for b in amountFlippedBones if b["x"] < width + 24]
 
             # Collision detection
-            heartRect = pygame.Rect(newX, y, squareSize, squareSize)
+            heartRect = pygame.Rect(newX, y, heartSize, heartSize)
             
             allAmountBones = amountBones + amountFlippedBones
 
@@ -454,7 +454,7 @@ def mainGame():
             screen.blit(flippedBone, (flippedBoneX, flippedBoneY))
             
             # Collision detection for levels 1-4
-            heartRect = pygame.Rect(newX, y, squareSize, squareSize)
+            heartRect = pygame.Rect(newX, y, heartSize, heartSize)
             bonesRect = pygame.Rect(boneX + 4, boneY, 24, 320)
             flippedBoneRect = pygame.Rect(flippedBoneX + 4, flippedBoneY, 24, 320)
             
