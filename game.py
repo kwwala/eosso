@@ -1,217 +1,217 @@
 import pygame
 import math
-import time
 import os
 
-# básico pygame
+# Initialize pygame
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
 clock = pygame.time.Clock()
+pygame.display.set_icon(pygame.image.load('images/shadedicon.png'))
 pygame.display.set_caption("É Osso")
-icon = pygame.image.load("images/shadedicon.png").convert_alpha()
-pygame.display.set_icon(icon)
 
-# coisas úteis
-font_path = os.path.join(os.path.dirname(__file__), "fonts", "minecraftia.ttf")
-font = pygame.font.Font(font_path, 24)
-print(font_path)
+# Setup resources
+fontPath = os.path.join(os.path.dirname(__file__), "fonts", "minecraftia.ttf")
+font = pygame.font.Font(fontPath, 24)
 width, height = screen.get_size()
 
-# níveis
+# Game state variables
 level = 1
-maxlevel = 3 # placeholder
-newlevel = True
-
-# jogador/coração
-heart = pygame.image.load("images/heart32x.png").convert_alpha()
-x, y = (width / 2) - 32, (height / 2) - 32
+maxLevel = 3
+newLevel = True
 squareSize = 32
 velocity = 5
 
+# Player setup
+heart = pygame.image.load("images/heart32x.png").convert_alpha()
+x, y = (width / 2) - 32, (height / 2) - 32
 
-def limitposition(x, y):
-    x = max(16, min(width - 48, x))
-    y = max(16, min(height - 48, y))
-    return x, y
+def limitPosition(x, y):
+    return max(16, min(width - 48, x)), max(16, min(height - 48, y))
 
-# Função para calcular movimento diagonal
-def diagonalmovement(keys):
-    global velocity
-    return velocity * (math.sqrt(2) / 2) if keys else 0
+def diagonalMovement():
+    return velocity * (math.sqrt(2) / 2)
 
-offset = 16
-
-# Variáveis de controle do tempo
-start_time = pygame.time.get_ticks()
-display_stage = 0
-start_time = pygame.time.get_ticks()
-show_overlay = True
-overlay_displayed = False
-wait_time = 1000
-
-def initscreen():
-    borda = pygame.Surface((width - 16, height - 16), pygame.SRCALPHA)
-    borda.fill((0, 0, 0, 0))
-    startscreen = pygame.image.load("images/start.png")
-    startscreenhover = pygame.image.load("images/starthover.png")
+def initScreen():
+    startScreen = pygame.image.load("images/start.png")
+    startScreenHover = pygame.image.load("images/starthover.png")
     pygame.mixer.stop()
-    pygame.mixer.music.unload()
     pygame.mixer.music.load("sounds/menu.ogg")
     pygame.mixer.music.play()
+    
     while True:
-        screen.fill((30, 30, 30))  # Fundo escuro para contraste
+        screen.fill((30, 30, 30))
         pos = pygame.mouse.get_pos()
         
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP:
-                if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
-                    maingame()
-            elif event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
+                    mainGame()
         
-        if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
-            screen.blit(startscreenhover, (0, 0))
-        else:
-            screen.blit(startscreen, (0, 0))
-        # pygame.draw.rect(screen, "cyan", (225, 255, 190, 95), 1)
+        screen.blit(startScreenHover if (255 <= pos[1] <= 350 and 255 <= pos[0] <= 410) else startScreen, (0, 0))
         pygame.display.flip()
         clock.tick(60)
 
-def deathscreen():
-    global start_time, display_stage, maxlevel, font, x, y
+def deathScreen():
+    global maxLevel, x, y
     
-    # sons
-    deathsound1 = pygame.mixer.Sound('sounds/death1.wav')
-    deathsound2 = pygame.mixer.Sound('sounds/death2.wav')
-    deathsound3 = pygame.mixer.Sound('sounds/death3.wav')
-    heart = pygame.image.load("images/heart64x.png")
-    heart_dead = pygame.image.load("images/heartdead64x.png")
+    # Load death sequence assets
+    deathSounds = [
+        pygame.mixer.Sound('sounds/death1.wav'),
+        pygame.mixer.Sound('sounds/death2.wav'),
+        pygame.mixer.Sound('sounds/death3.wav')
+    ]
+    
+    heartLarge = pygame.image.load("images/heart64x.png")
+    heartDead = pygame.image.load("images/heartdead64x.png")
 
-    screen.fill((0, 0, 0))
+    # Stop all sounds and music
     pygame.mixer.music.unload()
     pygame.mixer.stop()
 
-    screen.blit(heart, (x - 16, y - 16))
-    screen.blit(heart, (x - 16, y - 16))
-    deathsound1.play()
+    # Death animation sequence
+    screen.fill((0, 0, 0))
+    screen.blit(heartLarge, (x - 16, y - 16))
+    deathSounds[0].play()
     pygame.display.flip()
     pygame.time.delay(1000)
-
 
     screen.fill((0, 0, 0))
-    screen.blit(heart_dead, (x - 16, y - 16))
-    screen.blit(heart_dead, (x - 16, y - 16))
-    deathsound2.play()
+    screen.blit(heartDead, (x - 16, y - 16))
+    deathSounds[1].play()
     pygame.display.flip()
     pygame.time.delay(1000)
-
 
     screen.fill((0, 0, 0))
-    deathsound3.play()
+    deathSounds[2].play()
     pygame.display.flip()
     pygame.time.delay(1000)
 
+    # Game over screen
     pygame.mixer.music.load("sounds/determination.ogg")
     pygame.mixer.music.play()
     
-    surface_youdied = font.render(f"Você morreu.", True, 'white')
-    surface_levelreached = font.render(f"Você chegou no Nível {level: .0f}.", True, 'white')
-    if level > maxlevel:
-        surface_maxlevelreached = font.render(f"Você bateu seu recorde de {maxlevel: .0f}!", True, 'white')
-        maxlevel = level
-    else:
-        surface_maxlevelreached = font.render(f"Seu recorde é o Nível {maxlevel: .0f}.", True, 'white')
-    screen.blit(surface_youdied, (width / 5, (width / 4) - 50))
-    screen.blit(surface_levelreached, (width / 5, (width / 4) - 25))
-    screen.blit(surface_maxlevelreached, (width / 5, (width / 4)))
+    # Update max level if needed
+    recordBreak = level > maxLevel
+    if recordBreak:
+        maxLevel = level
+    
+    # Create text surfaces
+    gameOverTexts = [
+        font.render("Você morreu.", True, 'white'),
+        font.render(f"Você chegou no Nível {level:.0f}.", True, 'white'),
+        font.render(f"Você bateu seu recorde de {maxLevel:.0f}!" if recordBreak 
+                   else f"Seu recorde é o Nível {maxLevel:.0f}.", True, 'white')
+    ]
+    
+    # Position and render text
+    for i, text in enumerate(gameOverTexts):
+        textRect = text.get_rect(center=(width // 2, height // 2))
+        screen.blit(text, (textRect[0], textRect[1] - 70 + (i * 30)))
+    
     pygame.display.flip()
-    breakwhile = True
-    while breakwhile:
+    
+    # Wait for mouse click
+    waitForClick = True
+    while waitForClick:
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP:
-                    pos = pygame.mouse.get_pos()
-                    print(pos)
-                    if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
-                        breakwhile = False
-                        break   
-            elif event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
-                exit() 
-        pygame.display.flip()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
+                    waitForClick = False
         clock.tick(60)
-    initscreen()
+    
+    initScreen()
 
-def newlevelscreen():
-    soundnewlevel1 = pygame.mixer.Sound('sounds/newlevel1.wav')
-    soundnewlevel2 = pygame.mixer.Sound('sounds/newlevel2.wav')
+def newLevelScreen():
+    soundNewLevel = [
+        pygame.mixer.Sound('sounds/newlevel1.wav'),
+        pygame.mixer.Sound('sounds/newlevel2.wav')
+    ]
+    
     pygame.mixer.music.pause()
+    
+    # Semi-transparent overlay
     overlay = pygame.Surface((width, height), pygame.SRCALPHA)
-    overlay.fill((0, 0, 0, 128))  # RGBA: vermelho com 50% de transparência
+    overlay.fill((0, 0, 0, 128))
     screen.blit(overlay, (0, 0))
     pygame.display.flip()
-    soundnewlevel1.play()
+    soundNewLevel[0].play()
     pygame.time.delay(1000)
     
-    surface_level = font.render(f"Nível: {level: .0f}", True, 'white')
-    surface_maxlevel = font.render(f"Recorde: {maxlevel: .0f}", True, 'white')
-    text_render_x = (width // 2) - surface_level.get_width() // 2
-    text_render_y = (height // 2) - surface_level.get_height() // 2
-    screen.blit(surface_level, ((width // 2) - surface_level.get_width() // 2, text_render_y - 17))
-    screen.blit(surface_maxlevel, ((width // 2) - surface_level.get_width() // 2, text_render_y + 17))
+    # Level info
+    levelTexts = [
+        font.render(f"Nível: {level:.0f}", True, 'white'),
+        font.render(f"Recorde: {maxLevel:.0f}", True, 'white')
+    ]
+    
+    for i, text in enumerate(levelTexts):
+        textRect = text.get_rect(center=(width // 2, height // 2))
+        screen.blit(text, (textRect[0], textRect[1] - 15 + (i * 30)))
+    
     pygame.display.flip()
-    soundnewlevel2.play()
+    soundNewLevel[1].play()
     pygame.time.delay(1000)
 
-    soundnewlevel1.play()
+    soundNewLevel[0].play()
     pygame.mixer.music.unpause()
 
-def maingame():
-    global newlevel, level, maxlevel, x, y
+def mainGame():
+    global newLevel, level, maxLevel, x, y
 
-    
-    level = 1
-    newlevel = True
+    # levels
+    level = 4
+    newLevel = True
 
-    # plataforma
-    blocksize = squareSize
-    blockx, blocky = 200, 200
-    block = pygame.Surface([blocksize, blocksize])
-    block.fill((128, 128, 128))
-
-    # plataforma
-    platformsize = squareSize
-    platformx, platformy = 400, 200
-    platform = pygame.Surface([platformsize, platformsize / 4])
-    platform.fill((196, 196, 196))
-
-    # ossos
-    bonesize = squareSize
-    bonex, boney = width, 256
+    # Game objects
     bone = pygame.image.load("images/bone.png")
-
-    flippedbonex, flippedboney = width, -128
-    flippedbone = pygame.transform.flip(bone, False, True) 
-
-    # músicas de fundo
+    flippedBone = pygame.transform.flip(bone, False, True)
+    
+    # Initial positions
+    boneX, boneY = width, 256
+    flippedBoneX, flippedBoneY = width, -128
+    
+    # Load game music
     pygame.mixer.music.load("sounds/sans.ogg")
 
+    # Game variables for level 5
+    amountBones = []
+    amountFlippedBones = []
+    boneSpawnTimer = 0
+    boneTickDelay = 15
+    totalBones = 0
+    maxBones = 5
+    boneDirection = -1
+
     while True:
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
 
         keys = pygame.key.get_pressed()
-        dx = dy = 0
-
-        if newlevel:
+        
+        # New level setup
+        if newLevel:
             if level == 1:
                 pygame.mixer.music.play()
-            newlevelscreen()
-            newlevel = False
+            newLevelScreen()
+            newLevel = False
+            # Reset level 5 variables if needed
+            if level == 5:
+                amountBones = []
+                amountFlippedBones = []
+                boneSpawnTimer = 0
+                totalBones = 0
 
-        # Movimentação
+        # Movement controls
+        dx = dy = 0
         if keys[pygame.K_UP] or keys[pygame.K_w]:
             dy -= velocity
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
@@ -221,124 +221,247 @@ def maingame():
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             dx += velocity
 
-        # Ajuste para movimento diagonal
+        # Diagonal movement adjustment
         if dx != 0 and dy != 0:
-            dx = diagonalmovement(True) * (1 if dx > 0 else -1)
-            dy = diagonalmovement(True) * (1 if dy > 0 else -1)
+            diagonal = diagonalMovement()
+            dx = diagonal * (1 if dx > 0 else -1)
+            dy = diagonal * (1 if dy > 0 else -1)
 
-        # Atualização da posição proposta
-        new_x = x + dx
-        new_y = y + dy
+        # Update position
+        newX = x + dx
+        newY = y + dy
+        x, y = limitPosition(newX, newY)
 
-        # níveis
-        if level == 1:
-            bonex -= 2
-            if bonex <= -16:
-                level += 1
-                bonex = width
-                newlevel = True
-        elif level == 2:
-            bonex -= 4
-            if bonex <= -16:
-                bonex = width
-                level += 1
-                newlevel = True
-        elif level == 3:
-            bonex -= 4
-            flippedbonex -= 4
-            if bonex <= -16:
-                level += 1
-                bonex = width
-                flippedbonex = width
-                newlevel = True
-                bonedirection = -1  # 1 para subir, -1 para descer
-        elif level == 4:
-            bonex -= 4
-            flippedbonex -= 4
-
-            if boney >= 320:
-                bonedirection = -1
-            elif boney <= 250:
-                bonedirection = 1
-
-            boney += bonedirection
-            flippedboney += bonedirection
-
-            if bonex <= -16:
-                level += 1
-                bonex = width
-                flippedbonex = width
-                newlevel = True
-                bonedirection = -1  # 1 para subir, -1 para descer
-        elif level == 5:
-            if len(bones) < 5:  # Criar no máximo 5 ossos normais e 5 flipped
-                if bone_spawn_timer % bone_delay == 0:  # Verifica o tempo para spawn
-                    bones.append({"x": width, "y": 256})  # Osso normal
-                    flipped_bones.append({"x": width, "y": -128})  # Osso invertido
-                bone_spawn_timer += 1  # Incrementa o temporizador
-            
-            # Atualiza a posição de cada osso normal e desenha na tela
-            for bone_obj in bones:
-                bone_obj["x"] -= 4  # Movendo para a esquerda
-                screen.blit(bone, (bone_obj["x"], bone_obj["y"]))
-
-            # Atualiza a posição de cada osso invertido e desenha na tela
-            for flipped_bone_obj in flipped_bones:
-                flipped_bone_obj["x"] -= 4  # Movendo para a esquerda
-                screen.blit(flippedbone, (flipped_bone_obj["x"], flipped_bone_obj["y"]))
-
-            # Remover ossos que saíram da tela
-            bones = [b for b in bones if b["x"] > -24]
-            flipped_bones = [b for b in flipped_bones if b["x"] > -24]
-
-            # Colisão com ossos normais
-            for bone_obj in bones:
-                bone_rect = pygame.Rect(bone_obj["x"] + 4, bone_obj["y"], 24, 320)
-                if heart_rect.colliderect(bone_rect):
-                    deathscreen()
-
-            # Colisão com ossos invertidos
-            for flipped_bone_obj in flipped_bones:
-                flipped_bone_rect = pygame.Rect(flipped_bone_obj["x"] + 4, flipped_bone_obj["y"], 24, 320)
-                if heart_rect.colliderect(flipped_bone_rect):
-                    deathscreen()
-
-        else:
-            print('algo aconteceu') # vai que eu mecho e acabo bugando algo e pulando
-            exit()
-
-        # rects
-        heart_rect = pygame.Rect(new_x, y, squareSize, squareSize)
-        bones_rect = pygame.Rect(bonex + 4, boney, 24, 320)
-        flippedbone_rect = pygame.Rect(flippedbonex + 4, flippedboney, 24, 320)
-        # platform_rect = pygame.Rect(blockx, blocky, blocksize, blocksize)
-
-        # colisão com plataforma
-        # if heart_rect.colliderect(platform_rect):
-        #     if dx > 0:  # Movendo para a direita
-        #         new_x = platform_rect.left - squareSize
-        #     elif dx < 0:  # Movendo para a esquerda
-        #         new_x = platform_rect.right
-
-        # atualizar o retângulo temporário
-        heart_rect = pygame.Rect(x, new_y, squareSize, squareSize)
-        
-        # atualizar a posição final após colisão
-        x, y = limitposition(new_x, new_y)
-
-        # renderização (blit)
+        # Clear screen and draw player
         screen.fill((0, 0, 0))
         screen.blit(heart, (x, y))
-        screen.blit(bone, (bonex, boney))
-        screen.blit(flippedbone, (flippedbonex, flippedboney))
-        
+
+        # Level logic
+        if level == 1:
+            boneX -= 2
+            if boneX <= -16:
+                level += 1
+                boneX = width
+                newLevel = True
+        elif level == 2:
+            boneX -= 4
+            if boneX <= -16:
+                level += 1
+                boneX = width
+                newLevel = True
+        elif level == 3:
+            boneX -= 4
+            flippedBoneX -= 4
+            if boneX <= -16:
+                level += 1
+                boneX = width
+                flippedBoneX = width
+                newLevel = True
+                boneDirection = -1
+        elif level == 4:
+            # boneX -= 4
+            # flippedBoneX -= 4
+
+            # # Bone movement up/down
+            # if boneY >= 320:
+            #     boneDirection = -1
+            # elif boneY <= 250:
+            #     boneDirection = 1
+
+            # boneY += boneDirection
+            # flippedBoneY += boneDirection
+
+            # if boneX <= -16:
+                level += 1
+                boneX = width
+                flippedBoneX = width
+                newLevel = True
+        elif level == 5:
+            # Generate bones up to the limit
+            if totalBones < maxBones:
+                if boneSpawnTimer % boneTickDelay == 0:
+                    amountBones.append({"x": width, "y": 256})
+                    amountFlippedBones.append({"x": width, "y": -128})
+                    totalBones += 1
+                boneSpawnTimer += 1
+            
+            for boneObj in amountBones:
+                if "direction" not in boneObj:
+                    boneObj["direction"] = 1
+
+                if boneObj["y"] >= 320:
+                    boneObj["direction"] = -1
+                elif boneObj["y"] <= 250:
+                    boneObj["direction"] = 1
+
+                boneObj["y"] += boneObj["direction"]
+
+            for boneObj in amountFlippedBones:
+                if "direction" not in boneObj:
+                    boneObj["direction"] = 1
+
+                if boneObj["y"] >= -64:
+                    boneObj["direction"] = -1
+                elif boneObj["y"] <= -134:
+                    boneObj["direction"] = 1
+
+                boneObj["y"] += boneObj["direction"]
+
+
+            # Update and draw bones
+            for boneObj in amountBones:
+                boneObj["x"] -= 4
+                screen.blit(bone, (boneObj["x"], boneObj["y"]))
+
+            for flippedBoneObj in amountFlippedBones:
+                flippedBoneObj["x"] -= 4
+                screen.blit(flippedBone, (flippedBoneObj["x"], flippedBoneObj["y"]))
+
+            # Remove off-screen bones
+            amountBones = [b for b in amountBones if b["x"] > -24]
+            amountFlippedBones = [b for b in amountFlippedBones if b["x"] > -24]
+
+            # Collision detection
+            heartRect = pygame.Rect(newX, y, squareSize, squareSize)
+            
+            allAmountBones = amountBones + amountFlippedBones
+
+            for boneObj in allAmountBones:
+                boneRect = pygame.Rect(boneObj["x"] + 4, boneObj["y"], 24, 320)
+                if heartRect.colliderect(boneRect):
+                    deathScreen()
+            
+            # Level completion check
+            if totalBones >= maxBones and not amountBones and not amountFlippedBones:
+                level += 1
+                newLevel = True
+                amountBones.clear()
+                amountFlippedBones.clear()
+                boneSpawnTimer = 0
+                totalBones = 0
+        elif level == 6:
+            # Generate bones up to the limit
+            if totalBones < maxBones:
+                if boneSpawnTimer % boneTickDelay == 0:
+                    amountBones.append({"x": 8, "y": 256})
+                    amountFlippedBones.append({"x": 8, "y": -128})
+                    totalBones += 1
+                boneSpawnTimer += 1
+            
+            for boneObj in amountBones:
+                if "direction" not in boneObj:
+                    boneObj["direction"] = 1
+
+                if boneObj["y"] >= 320:
+                    boneObj["direction"] = -1
+                elif boneObj["y"] <= 250:
+                    boneObj["direction"] = 1
+
+                boneObj["y"] += boneObj["direction"]
+
+            for boneObj in amountFlippedBones:
+                if "direction" not in boneObj:
+                    boneObj["direction"] = 1
+
+                if boneObj["y"] >= -64:
+                    boneObj["direction"] = -1
+                elif boneObj["y"] <= -134:
+                    boneObj["direction"] = 1
+
+                boneObj["y"] += boneObj["direction"]
+
+
+            # Update and draw bones
+            for boneObj in amountBones:
+                boneObj["x"] += 4
+                screen.blit(bone, (boneObj["x"], boneObj["y"]))
+
+            for flippedBoneObj in amountFlippedBones:
+                flippedBoneObj["x"] += 4
+                screen.blit(flippedBone, (flippedBoneObj["x"], flippedBoneObj["y"]))
+
+            # Remove off-screen bones
+            amountBones = [b for b in amountBones if b["x"] < width + 24]
+            amountFlippedBones = [b for b in amountFlippedBones if b["x"] < width + 24]
+
+            # Collision detection
+            heartRect = pygame.Rect(newX, y, squareSize, squareSize)
+            
+            allAmountBones = amountBones + amountFlippedBones
+
+            for boneObj in allAmountBones:
+                boneRect = pygame.Rect(boneObj["x"] + 4, boneObj["y"], 24, 320)
+                if heartRect.colliderect(boneRect):
+                    deathScreen()
+            
+            # Level completion check
+            if totalBones >= maxBones and not amountBones and not amountFlippedBones:
+                level += 1
+                newLevel = True
+                amountBones.clear()
+                amountFlippedBones.clear()
+                boneSpawnTimer = 0
+                totalBones = 0
+        elif level == 7:
+            if totalBones < 1:
+                if boneSpawnTimer % boneTickDelay == 0:
+                    amountBones.append({"x": 8, "y": 256})
+                    amountFlippedBones.append({"x": 8, "y": -128})
+                    totalBones += 1
+                boneSpawnTimer += 1
+                
+            # blit os ossos
+            for boneObj in amountBones:
+                boneObj["x"] += 8
+                screen.blit(bone, (boneObj["x"], boneObj["y"]))
+
+            for flippedBoneObj in amountFlippedBones:
+                flippedBoneObj["x"] += 8
+                screen.blit(flippedBone, (flippedBoneObj["x"], flippedBoneObj["y"]))
+            
+            allAmountBones = amountBones + amountFlippedBones
+
+            for boneObj in allAmountBones:
+                boneRect = pygame.Rect(boneObj["x"] + 4, boneObj["y"], 24, 320)
+                if heartRect.colliderect(boneRect):
+                    deathScreen()
+
+            # Remove ossos que saíram completamente da tela
+            amountBones = [b for b in amountBones if b["x"] < width + 24]
+            amountFlippedBones = [b for b in amountFlippedBones if b["x"] < width + 24]
+
+            # Se todos os ossos saíram da tela, avance de nível
+            if totalBones >= 1 and not amountBones and not amountFlippedBones:
+                level += 1
+                newLevel = True
+                amountBones.clear()
+                amountFlippedBones.clear()
+                boneSpawnTimer = 0
+                totalBones = 0
+
+        else:
+            print('tá fazendo o que aqui, bobão?')
+            exit()
+
+        # Draw bones for levels 1-4
+        if level < 5:
+            screen.blit(bone, (boneX, boneY))
+            screen.blit(flippedBone, (flippedBoneX, flippedBoneY))
+            
+            # Collision detection for levels 1-4
+            heartRect = pygame.Rect(newX, y, squareSize, squareSize)
+            bonesRect = pygame.Rect(boneX + 4, boneY, 24, 320)
+            flippedBoneRect = pygame.Rect(flippedBoneX + 4, flippedBoneY, 24, 320)
+            
+            if heartRect.colliderect(bonesRect) or heartRect.colliderect(flippedBoneRect): 
+                deathScreen()
+
+        # Draw border
         pygame.draw.rect(screen, "black", (0, 0, width, height), 8)
         pygame.draw.rect(screen, "white", (8, 8, width - 16, height - 16), 8)
         
-        if heart_rect.colliderect(bones_rect) or heart_rect.colliderect(flippedbone_rect): 
-            deathscreen()
-
         pygame.display.flip()
         clock.tick(60)
 
-initscreen()
+# Start the game
+initScreen()
