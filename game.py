@@ -23,7 +23,7 @@ velocity = 5
 
 # Player setup
 heart = pygame.image.load("images/heart32x.png").convert_alpha()
-x, y = (width / 2) - 32, (height / 2) - 32
+x, y = (width / 2) - 16, (height / 2) - 16
 
 def limitPosition(x, y):
     return max(16, min(width - 48, x)), max(16, min(height - 48, y))
@@ -32,11 +32,12 @@ def diagonalMovement():
     return velocity * (math.sqrt(2) / 2)
 
 def initScreen():
-    startScreen = pygame.image.load("images/start.png")
-    startScreenHover = pygame.image.load("images/starthover.png")
+    # Load assets
+    startScreen = pygame.image.load("images/startScreen.png")
+    startScreenHover = pygame.image.load("images/startHoverScreen.png")
     pygame.mixer.stop()
     pygame.mixer.music.load("sounds/menu.ogg")
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
     
     while True:
         screen.fill((30, 30, 30))
@@ -47,10 +48,12 @@ def initScreen():
                 pygame.quit()
                 exit()
             elif event.type == pygame.MOUSEBUTTONUP:
-                if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
+                if 260 <= pos[0] <= 380 and 280 <= pos[1] <= 330:
                     mainGame()
         
-        screen.blit(startScreenHover if (255 <= pos[1] <= 350 and 255 <= pos[0] <= 410) else startScreen, (0, 0))
+        screen.blit(startScreenHover if (260 <= pos[0] <= 380 and 280 <= pos[1] <= 330) else startScreen, (0, 0))
+        # pygame.draw.rect(screen, "cyan", (260, 280, 120, 50), 1)
+
         pygame.display.flip()
         clock.tick(60)
 
@@ -63,7 +66,6 @@ def deathScreen():
         pygame.mixer.Sound('sounds/death2.wav'),
         pygame.mixer.Sound('sounds/death3.wav')
     ]
-    
     heartLarge = pygame.image.load("images/heart64x.png")
     heartDead = pygame.image.load("images/heartdead64x.png")
 
@@ -91,7 +93,7 @@ def deathScreen():
 
     # Game over screen
     pygame.mixer.music.load("sounds/determination.ogg")
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
     
     # Update max level if needed
     recordBreak = level > maxLevel
@@ -107,26 +109,40 @@ def deathScreen():
     ]
     
     # Position and render text
-    for i, text in enumerate(gameOverTexts):
-        textRect = text.get_rect(center=(width // 2, height // 2))
-        screen.blit(text, (textRect[0], textRect[1] - 70 + (i * 30)))
-    
-    pygame.display.flip()
+    deathScreenImage = pygame.image.load("images/deathScreen.png")
+    deathScreenPlayHover = pygame.image.load("images/deathScreenPlayHover.png")
+    deathScreenMenuHover = pygame.image.load("images/deathScreenMenuHover.png")
     
     # Wait for mouse click
     waitForClick = True
     while waitForClick:
+        pos = pygame.mouse.get_pos()
+        if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294:
+            screen.blit(deathScreenPlayHover, (0, 0))
+        elif 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+            screen.blit(deathScreenMenuHover, (0, 0))
+        else:
+            screen.blit(deathScreenImage, (0, 0))
+
+        for i, text in enumerate(gameOverTexts):
+            textRect = text.get_rect(center=(width // 2, height // 2))
+            textShadow = text.copy()
+            textShadow.fill((128, 128, 128, 128), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(textShadow, (textRect[0] + 3, textRect[1] - 95 + (i * 30)))
+            screen.blit(text, (textRect[0], textRect[1] - 98 + (i * 30)))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
             elif event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                if 255 <= pos[1] <= 350 and 255 <= pos[0] <= 410:
-                    waitForClick = False
+                if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294:
+                    mainGame()
+                elif 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+                    initScreen()
+        pygame.display.flip()
         clock.tick(60)
-    
-    initScreen()
 
 def newLevelScreen():
     soundNewLevel = [
@@ -141,8 +157,8 @@ def newLevelScreen():
     overlay.fill((0, 0, 0, 128))
     screen.blit(overlay, (0, 0))
     pygame.display.flip()
-    soundNewLevel[0].play()
-    pygame.time.delay(1000)
+    # soundNewLevel[0].play()
+    # pygame.time.delay(1000)
     
     # Level info
     levelTexts = [
@@ -152,6 +168,9 @@ def newLevelScreen():
     
     for i, text in enumerate(levelTexts):
         textRect = text.get_rect(center=(width // 2, height // 2))
+        textShadow = text.copy()
+        textShadow.fill((128, 128, 128, 128), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(textShadow, (textRect[0] + 3, textRect[1] - 12 + (i * 30)))
         screen.blit(text, (textRect[0], textRect[1] - 15 + (i * 30)))
     
     pygame.display.flip()
@@ -165,7 +184,7 @@ def mainGame():
     global newLevel, level, maxLevel, x, y
 
     # levels
-    level = 4
+    level = 1
     newLevel = True
 
     # Game objects
@@ -173,8 +192,9 @@ def mainGame():
     flippedBone = pygame.transform.flip(bone, False, True)
     
     # Initial positions
-    boneX, boneY = width, 256
-    flippedBoneX, flippedBoneY = width, -128
+    boneX, boneY = width, 272
+    flippedBoneX, flippedBoneY = width, -112
+    x, y = (width / 2) - 16, (height / 2) - 16
     
     # Load game music
     pygame.mixer.music.load("sounds/sans.ogg")
@@ -186,7 +206,6 @@ def mainGame():
     boneTickDelay = 15
     totalBones = 0
     maxBones = 5
-    boneDirection = -1
 
     while True:
         # Event handling
@@ -197,19 +216,6 @@ def mainGame():
 
         keys = pygame.key.get_pressed()
         
-        # New level setup
-        if newLevel:
-            if level == 1:
-                pygame.mixer.music.play()
-            newLevelScreen()
-            newLevel = False
-            # Reset level 5 variables if needed
-            if level == 5:
-                amountBones = []
-                amountFlippedBones = []
-                boneSpawnTimer = 0
-                totalBones = 0
-
         # Movement controls
         dx = dy = 0
         if keys[pygame.K_UP] or keys[pygame.K_w]:
@@ -259,19 +265,19 @@ def mainGame():
                 newLevel = True
                 boneDirection = -1
         elif level == 4:
-            # boneX -= 4
-            # flippedBoneX -= 4
+            boneX -= 4
+            flippedBoneX -= 4
 
-            # # Bone movement up/down
-            # if boneY >= 320:
-            #     boneDirection = -1
-            # elif boneY <= 250:
-            #     boneDirection = 1
+            # Bone movement up/down
+            if boneY >= 320:
+                boneDirection = -1
+            elif boneY <= 250:
+                boneDirection = 1
 
-            # boneY += boneDirection
-            # flippedBoneY += boneDirection
+            boneY += boneDirection
+            flippedBoneY += boneDirection
 
-            # if boneX <= -16:
+            if boneX <= -16:
                 level += 1
                 boneX = width
                 flippedBoneX = width
@@ -280,8 +286,8 @@ def mainGame():
             # Generate bones up to the limit
             if totalBones < maxBones:
                 if boneSpawnTimer % boneTickDelay == 0:
-                    amountBones.append({"x": width, "y": 256})
-                    amountFlippedBones.append({"x": width, "y": -128})
+                    amountBones.append({"x": width, "y": 272})
+                    amountFlippedBones.append({"x": width, "y": -112})
                     totalBones += 1
                 boneSpawnTimer += 1
             
@@ -343,8 +349,8 @@ def mainGame():
             # Generate bones up to the limit
             if totalBones < maxBones:
                 if boneSpawnTimer % boneTickDelay == 0:
-                    amountBones.append({"x": 8, "y": 256})
-                    amountFlippedBones.append({"x": 8, "y": -128})
+                    amountBones.append({"x": 8, "y": 272})
+                    amountFlippedBones.append({"x": 8, "y": -112})
                     totalBones += 1
                 boneSpawnTimer += 1
             
@@ -405,8 +411,8 @@ def mainGame():
         elif level == 7:
             if totalBones < 1:
                 if boneSpawnTimer % boneTickDelay == 0:
-                    amountBones.append({"x": 8, "y": 256})
-                    amountFlippedBones.append({"x": 8, "y": -128})
+                    amountBones.append({"x": 8, "y": 272})
+                    amountFlippedBones.append({"x": 8, "y": -112})
                     totalBones += 1
                 boneSpawnTimer += 1
                 
@@ -438,7 +444,6 @@ def mainGame():
                 amountFlippedBones.clear()
                 boneSpawnTimer = 0
                 totalBones = 0
-
         else:
             print('tá fazendo o que aqui, bobão?')
             exit()
@@ -460,6 +465,19 @@ def mainGame():
         pygame.draw.rect(screen, "black", (0, 0, width, height), 8)
         pygame.draw.rect(screen, "white", (8, 8, width - 16, height - 16), 8)
         
+        # New level setup
+        if newLevel:
+            if level == 1:
+                pygame.mixer.music.play(-1)
+            newLevelScreen()
+            newLevel = False
+            # Reset level 5 variables if needed
+            if level == 5:
+                amountBones = []
+                amountFlippedBones = []
+                boneSpawnTimer = 0
+                totalBones = 0
+
         pygame.display.flip()
         clock.tick(60)
 
