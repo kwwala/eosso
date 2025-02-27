@@ -16,7 +16,7 @@ width, height = screen.get_size()
 
 # Game state variables
 level = 1
-maxLevel = level
+maxLevel = 0
 newLevel = True
 heartSize = 32
 velocity = 5
@@ -97,9 +97,7 @@ def deathScreen():
     
     # Update max level if needed
     recordBreak = level > maxLevel
-    if recordBreak:
-        maxLevel = level
-    
+
     # Create text surfaces
     gameOverTexts = [
         font.render("Você morreu.", True, 'white'),
@@ -137,10 +135,13 @@ def deathScreen():
                 exit()
             elif event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294:
-                    mainGame()
-                elif 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
-                    initScreen()
+                if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294 or 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+                    if recordBreak:
+                        maxLevel = level
+                    if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294:
+                        mainGame()
+                    elif 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+                        initScreen()
         pygame.display.flip()
         clock.tick(60)
 
@@ -241,6 +242,11 @@ def mainGame():
         # Clear screen and draw player
         screen.fill((0, 0, 0))
         screen.blit(heart, (x, y))
+
+        # Collision detection for levels 1-4
+        heartRect = pygame.Rect(newX, y, heartSize, heartSize)
+        bonesRect = pygame.Rect(boneX + 4, boneY, 24, 320)
+        flippedBoneRect = pygame.Rect(flippedBoneX + 4, flippedBoneY, 24, 320)
 
         # Level logic
         if level == 1:
@@ -443,7 +449,129 @@ def mainGame():
                 amountBones.clear()
                 amountFlippedBones.clear()
                 boneSpawnTimer = 0
-                totalBones = 0
+                totalBones = 0      
+        # elif level == 8:
+        #     global boneX8, boneY8, phase8, flippedBoneX8, flippedBoneY8, phase8_flipped
+        #     if newLevel or 'phase8' not in globals() or 'phase8_flipped' not in globals():
+        #         # Inicializa o osso normal:
+        #         boneX8 = width         # Começa do lado direito
+        #         boneY8 = 272 - 32      # 32 pixels acima do normal (240)
+        #         phase8 = "horizontal_left"
+                
+        #         # Inicializa o flippedBone:
+        #         flippedBoneX8 = width  # Também começa do lado direito
+        #         flippedBoneY8 = -112 - 32  # 32 pixels acima do normal (-144)
+        #         phase8_flipped = "horizontal_left"
+                
+        #         newLevel = False
+
+        #     # Flags para indicar quando cada osso concluiu o ciclo horizontal de retorno
+        #     normal_bone_done = False
+        #     flipped_bone_done = False
+
+        #     # Movimento do osso normal
+        #     if phase8 == "horizontal_left":
+        #         boneX8 -= 8  # Movimento para a esquerda
+        #         if boneX8 <= -16:
+        #             phase8 = "vertical_down"
+        #     elif phase8 == "vertical_down":
+        #         boneY8 += 2  # Movimento vertical (descendo)
+        #         if boneY8 >= 272 + 32:  # 32 pixels abaixo do normal (304)
+        #             phase8 = "horizontal_right"
+        #     elif phase8 == "horizontal_right":
+        #         boneX8 += 8  # Movimento para a direita
+        #         if boneX8 >= width:
+        #             normal_bone_done = True
+
+        #     # Movimento do flippedBone (agora idêntico ao bone normal)
+        #     if phase8_flipped == "horizontal_left":
+        #         flippedBoneX8 -= 8  # Movimento para a esquerda
+        #         if flippedBoneX8 <= -16:
+        #             phase8_flipped = "vertical_down"
+        #     elif phase8_flipped == "vertical_down":
+        #         flippedBoneY8 += 2  # Movimento vertical (descendo)
+        #         if flippedBoneY8 >= -112 + 32:  # 32 pixels abaixo do normal (-80)
+        #             phase8_flipped = "horizontal_right"
+        #     elif phase8_flipped == "horizontal_right":
+        #         flippedBoneX8 += 8  # Movimento para a direita
+        #         if flippedBoneX8 >= width:
+        #             flipped_bone_done = True
+
+        #     # Desenha os ossos
+        #     screen.blit(bone, (boneX8, boneY8))
+        #     screen.blit(flippedBone, (flippedBoneX8, flippedBoneY8))
+            
+        #     # Cria os retângulos para detecção de colisão
+        #     boneRect8 = pygame.Rect(boneX8 + 4, boneY8, 24, 320)
+        #     flippedBoneRect8 = pygame.Rect(flippedBoneX8 + 4, flippedBoneY8, 24, 320)
+        #     if heartRect.colliderect(boneRect8) or heartRect.colliderect(flippedBoneRect8):
+        #         deathScreen()
+
+        #     # Se ambos os ossos completaram o ciclo de retorno, finaliza o nível
+        #     if normal_bone_done and flipped_bone_done:
+        #         level += 1
+        #         newLevel = True
+        
+        elif level == 8:
+            global boneX8, boneY8, phase8, flippedBoneX8, flippedBoneY8, phase8_flipped
+            if newLevel or 'phase8' not in globals() or 'phase8_flipped' not in globals():
+                boneX8 = width
+                boneY8 = 272 - 32
+                phase8 = "horizontal_left"
+                
+                flippedBoneX8 = 8
+                flippedBoneY8 = -112
+                phase8_flipped = "horizontal_right"
+                
+                newLevel = False
+
+            # Flags para indicar quando cada osso concluiu o ciclo horizontal de retorno
+            normal_bone_done = False
+            flipped_bone_done = False
+
+            # Movimento do osso normal
+            if phase8 == "horizontal_left":
+                boneX8 -= 4  # Movimento para a esquerda
+                if boneX8 <= -16:
+                    phase8 = "vertical_down"
+            elif phase8 == "vertical_down":
+                boneY8 += 2  # Movimento vertical (descendo)
+                if boneY8 >= 272 + 32:  # Quando atinge 304 (32 pixels abaixo do normal 272)
+                    phase8 = "horizontal_right"
+            elif phase8 == "horizontal_right":
+                boneX8 += 4  # Movimento para a direita
+                if boneX8 >= width:
+                    normal_bone_done = True
+
+            # Movimento do flippedBone
+            if phase8_flipped == "horizontal_right":
+                flippedBoneX8 += 4  # Movimento para a direita
+                if flippedBoneX8 >= width:
+                    phase8_flipped = "vertical_down"
+            elif phase8_flipped == "vertical_down":
+                flippedBoneY8 += 2  # Movimento vertical (descendo)
+                if flippedBoneY8 >= -112 + 64:  # Quando atinge -112 + 32 = -80 (32 pixels abaixo do normal -112)
+                    phase8_flipped = "horizontal_left"
+            elif phase8_flipped == "horizontal_left":
+                flippedBoneX8 -= 4  # Movimento para a esquerda
+                if flippedBoneX8 <= -16:
+                    flipped_bone_done = True
+
+            # Desenha os ossos
+            screen.blit(bone, (boneX8, boneY8))
+            screen.blit(flippedBone, (flippedBoneX8, flippedBoneY8))
+            
+            # Cria os retângulos para detecção de colisão
+            boneRect8 = pygame.Rect(boneX8 + 4, boneY8, 24, 320)
+            flippedBoneRect8 = pygame.Rect(flippedBoneX8 + 4, flippedBoneY8, 24, 320)
+            if heartRect.colliderect(boneRect8) or heartRect.colliderect(flippedBoneRect8):
+                deathScreen()
+
+            # Se ambos os ossos completaram o ciclo de retorno, finaliza o nível
+            if normal_bone_done and flipped_bone_done:
+                level += 1
+                newLevel = True
+
         else:
             print('tá fazendo o que aqui, bobão?')
             exit()
@@ -452,12 +580,6 @@ def mainGame():
         if level < 5:
             screen.blit(bone, (boneX, boneY))
             screen.blit(flippedBone, (flippedBoneX, flippedBoneY))
-            
-            # Collision detection for levels 1-4
-            heartRect = pygame.Rect(newX, y, heartSize, heartSize)
-            bonesRect = pygame.Rect(boneX + 4, boneY, 24, 320)
-            flippedBoneRect = pygame.Rect(flippedBoneX + 4, flippedBoneY, 24, 320)
-            
             if heartRect.colliderect(bonesRect) or heartRect.colliderect(flippedBoneRect): 
                 deathScreen()
 
