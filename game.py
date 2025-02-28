@@ -50,6 +50,8 @@ def initScreen():
             elif event.type == pygame.MOUSEBUTTONUP:
                 if 260 <= pos[0] <= 380 and 280 <= pos[1] <= 330:
                     mainGame()
+                elif pos[0] < 50 and pos[1] > height - 50:
+                    easterEgg()
         
         screen.blit(startScreenHover if (260 <= pos[0] <= 380 and 280 <= pos[1] <= 330) else startScreen, (0, 0))
         # pygame.draw.rect(screen, "cyan", (260, 280, 120, 50), 1)
@@ -603,5 +605,76 @@ def mainGame():
         pygame.display.flip()
         clock.tick(60)
 
+def easterEgg():
+    easterEggX = width / 2 - 16
+    easterEggY = height / 2 - 16
+    easterEggXMovement = easterEggYMovement = 5
+    
+    h = 0
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_ESCAPE]:
+            initScreen()
+
+        screen.fill((0, 0, 0))
+
+        if easterEggX > width - 48 or easterEggX < 16:
+            easterEggXMovement = easterEggXMovement * -1
+        if easterEggY > height - 48 or easterEggY < 16:
+            easterEggYMovement = easterEggYMovement * -1
+
+        easterEggX += easterEggXMovement
+        easterEggY += easterEggYMovement
+        
+        h = (h + 1) % 360
+        
+        # Função para converter HSV para RGB
+        def hsv_to_rgb(h, s, v):
+            h = h / 360
+            c = v * s
+            x = c * (1 - abs((h * 6) % 2 - 1))
+            m = v - c
+            
+            if 0 <= h < 1/6:
+                r, g, b = c, x, 0
+            elif 1/6 <= h < 2/6:
+                r, g, b = x, c, 0
+            elif 2/6 <= h < 3/6:
+                r, g, b = 0, c, x
+            elif 3/6 <= h < 4/6:
+                r, g, b = 0, x, c
+            elif 4/6 <= h < 5/6:
+                r, g, b = x, 0, c
+            else:
+                r, g, b = c, 0, x
+                
+            r, g, b = int((r + m) * 255), int((g + m) * 255), int((b + m) * 255)
+            return (r, g, b)
+        
+        text = font.render(f"o logo do dvd kk", True, hsv_to_rgb(h, 1, 1))
+        
+        textRect = text.get_rect(center=(width // 2, height // 2))
+        textShadow = text.copy()
+        textShadow.fill((128, 128, 128, 128), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(textShadow, (textRect[0] + 3, textRect[1] + 3))
+        screen.blit(text, (textRect[0], textRect[1]))
+        
+        screen.blit(heart, (easterEggX, easterEggY))
+
+        pygame.draw.rect(screen, "white", (8, 8, width - 16, height - 16), 8)
+
+        pygame.display.flip()
+        clock.tick(60)
+
 # Start the game
 initScreen()
+
+
+
+
