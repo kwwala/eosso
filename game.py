@@ -109,9 +109,11 @@ def deathScreen():
     ]
     
     # Position and render text
-    deathScreenImage = pygame.image.load("images/deathScreen.png")
-    deathScreenPlayHover = pygame.image.load("images/deathScreenPlayHover.png")
-    deathScreenMenuHover = pygame.image.load("images/deathScreenMenuHover.png")
+    deathScreenImage = pygame.image.load("images/clickScreen.png")
+    deathScreenPlayHover = pygame.image.load("images/playHoverScreen.png")
+    deathScreenMenuHover = pygame.image.load("images/menuHoverScreen.png")
+    deathScreenOverlay = pygame.image.load("images/deathScreenOverlay.png")
+
     
     # Wait for mouse click
     waitForClick = True
@@ -123,6 +125,8 @@ def deathScreen():
             screen.blit(deathScreenMenuHover, (0, 0))
         else:
             screen.blit(deathScreenImage, (0, 0))
+
+        screen.blit(deathScreenOverlay, (0, 0))
 
         for i, text in enumerate(gameOverTexts):
             textRect = text.get_rect(center=(width // 2, height // 2))
@@ -183,8 +187,68 @@ def newLevelScreen():
     soundNewLevel[0].play()
     pygame.mixer.music.unpause()
 
+def winScreen():
+    global level, maxLevel
+
+    pygame.mixer.music.unload()
+    pygame.mixer.stop()
+    pygame.mixer.music.load("sounds/holiday.ogg")
+    pygame.mixer.music.play(-1)
+
+
+    recordBreak = level > maxLevel
+
+    gameOverTexts = [
+        font.render("Parabéns!", True, 'white'),
+        font.render(f"Você zerou esse jogo.", True, 'white'),
+        font.render(f"Você bateu seu recorde de {maxLevel:.0f}!" if recordBreak 
+                   else f"Você já tinha zerado antes.", True, 'white')
+    ]
+    
+    # Position and render text
+    deathScreenImage = pygame.image.load("images/clickScreen.png")
+    deathScreenPlayHover = pygame.image.load("images/playHoverScreen.png")
+    deathScreenMenuHover = pygame.image.load("images/menuHoverScreen.png")
+
+    
+    # Wait for mouse click
+    waitForClick = True
+    while waitForClick:
+        pos = pygame.mouse.get_pos()
+        if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294:
+            screen.blit(deathScreenPlayHover, (0, 0))
+        elif 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+            screen.blit(deathScreenMenuHover, (0, 0))
+        else:
+            screen.blit(deathScreenImage, (0, 0))
+
+        for i, text in enumerate(gameOverTexts):
+            textRect = text.get_rect(center=(width // 2, height // 2))
+            textShadow = text.copy()
+            textShadow.fill((128, 128, 128, 128), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(textShadow, (textRect[0] + 3, textRect[1] - 95 + (i * 30)))
+            screen.blit(text, (textRect[0], textRect[1] - 98 + (i * 30)))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294 or 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+                    if recordBreak:
+                        maxLevel = level
+                    if 260 <= pos[0] <= 380 and 244 <= pos[1] <= 294:
+                        mainGame()
+                    elif 260 <= pos[0] <= 380 and 304 <= pos[1] <= 354:
+                        initScreen()
+        pygame.display.flip()
+        clock.tick(60)
+
 def mainGame():
     global newLevel, level, maxLevel, x, y
+    global boneX8, boneY8, phase8, flippedBoneX8, flippedBoneY8, phase8_flipped
+
 
     # levels
     level = 1
@@ -209,6 +273,15 @@ def mainGame():
     boneTickDelay = 15
     totalBones = 0
     maxBones = 5
+
+    # variaveis level 8
+    boneX8 = width
+    boneY8 = 272 - 32
+    phase8 = "horizontal_left"
+    
+    flippedBoneX8 = 8
+    flippedBoneY8 = -112
+    phase8_flipped = "horizontal_right"
 
     while True:
         # Event handling
@@ -250,7 +323,7 @@ def mainGame():
         bonesRect = pygame.Rect(boneX + 4, boneY, 24, 320)
         flippedBoneRect = pygame.Rect(flippedBoneX + 4, flippedBoneY, 24, 320)
 
-        # Level logic
+        
         if level == 1:
             boneX -= 2
             if boneX <= -16:
@@ -452,71 +525,8 @@ def mainGame():
                 amountFlippedBones.clear()
                 boneSpawnTimer = 0
                 totalBones = 0      
-        # elif level == 8:
-        #     global boneX8, boneY8, phase8, flippedBoneX8, flippedBoneY8, phase8_flipped
-        #     if newLevel or 'phase8' not in globals() or 'phase8_flipped' not in globals():
-        #         # Inicializa o osso normal:
-        #         boneX8 = width         # Começa do lado direito
-        #         boneY8 = 272 - 32      # 32 pixels acima do normal (240)
-        #         phase8 = "horizontal_left"
-                
-        #         # Inicializa o flippedBone:
-        #         flippedBoneX8 = width  # Também começa do lado direito
-        #         flippedBoneY8 = -112 - 32  # 32 pixels acima do normal (-144)
-        #         phase8_flipped = "horizontal_left"
-                
-        #         newLevel = False
-
-        #     # Flags para indicar quando cada osso concluiu o ciclo horizontal de retorno
-        #     normal_bone_done = False
-        #     flipped_bone_done = False
-
-        #     # Movimento do osso normal
-        #     if phase8 == "horizontal_left":
-        #         boneX8 -= 8  # Movimento para a esquerda
-        #         if boneX8 <= -16:
-        #             phase8 = "vertical_down"
-        #     elif phase8 == "vertical_down":
-        #         boneY8 += 2  # Movimento vertical (descendo)
-        #         if boneY8 >= 272 + 32:  # 32 pixels abaixo do normal (304)
-        #             phase8 = "horizontal_right"
-        #     elif phase8 == "horizontal_right":
-        #         boneX8 += 8  # Movimento para a direita
-        #         if boneX8 >= width:
-        #             normal_bone_done = True
-
-        #     # Movimento do flippedBone (agora idêntico ao bone normal)
-        #     if phase8_flipped == "horizontal_left":
-        #         flippedBoneX8 -= 8  # Movimento para a esquerda
-        #         if flippedBoneX8 <= -16:
-        #             phase8_flipped = "vertical_down"
-        #     elif phase8_flipped == "vertical_down":
-        #         flippedBoneY8 += 2  # Movimento vertical (descendo)
-        #         if flippedBoneY8 >= -112 + 32:  # 32 pixels abaixo do normal (-80)
-        #             phase8_flipped = "horizontal_right"
-        #     elif phase8_flipped == "horizontal_right":
-        #         flippedBoneX8 += 8  # Movimento para a direita
-        #         if flippedBoneX8 >= width:
-        #             flipped_bone_done = True
-
-        #     # Desenha os ossos
-        #     screen.blit(bone, (boneX8, boneY8))
-        #     screen.blit(flippedBone, (flippedBoneX8, flippedBoneY8))
-            
-        #     # Cria os retângulos para detecção de colisão
-        #     boneRect8 = pygame.Rect(boneX8 + 4, boneY8, 24, 320)
-        #     flippedBoneRect8 = pygame.Rect(flippedBoneX8 + 4, flippedBoneY8, 24, 320)
-        #     if heartRect.colliderect(boneRect8) or heartRect.colliderect(flippedBoneRect8):
-        #         deathScreen()
-
-        #     # Se ambos os ossos completaram o ciclo de retorno, finaliza o nível
-        #     if normal_bone_done and flipped_bone_done:
-        #         level += 1
-        #         newLevel = True
-        
         elif level == 8:
-            global boneX8, boneY8, phase8, flippedBoneX8, flippedBoneY8, phase8_flipped
-            if newLevel or 'phase8' not in globals() or 'phase8_flipped' not in globals():
+            if newLevel:
                 boneX8 = width
                 boneY8 = 272 - 32
                 phase8 = "horizontal_left"
@@ -533,7 +543,7 @@ def mainGame():
 
             # Movimento do osso normal
             if phase8 == "horizontal_left":
-                boneX8 -= 4  # Movimento para a esquerda
+                boneX8 -= 8  # Movimento para a esquerda
                 if boneX8 <= -16:
                     phase8 = "vertical_down"
             elif phase8 == "vertical_down":
@@ -541,13 +551,13 @@ def mainGame():
                 if boneY8 >= 272 + 32:  # Quando atinge 304 (32 pixels abaixo do normal 272)
                     phase8 = "horizontal_right"
             elif phase8 == "horizontal_right":
-                boneX8 += 4  # Movimento para a direita
+                boneX8 += 8  # Movimento para a direita
                 if boneX8 >= width:
                     normal_bone_done = True
 
             # Movimento do flippedBone
             if phase8_flipped == "horizontal_right":
-                flippedBoneX8 += 4  # Movimento para a direita
+                flippedBoneX8 += 8  # Movimento para a direita
                 if flippedBoneX8 >= width:
                     phase8_flipped = "vertical_down"
             elif phase8_flipped == "vertical_down":
@@ -555,7 +565,7 @@ def mainGame():
                 if flippedBoneY8 >= -112 + 64:  # Quando atinge -112 + 32 = -80 (32 pixels abaixo do normal -112)
                     phase8_flipped = "horizontal_left"
             elif phase8_flipped == "horizontal_left":
-                flippedBoneX8 -= 4  # Movimento para a esquerda
+                flippedBoneX8 -= 8  # Movimento para a esquerda
                 if flippedBoneX8 <= -16:
                     flipped_bone_done = True
 
@@ -573,7 +583,8 @@ def mainGame():
             if normal_bone_done and flipped_bone_done:
                 level += 1
                 newLevel = True
-
+        elif level == 9:
+            winScreen()
         else:
             print('tá fazendo o que aqui, bobão?')
             exit()
