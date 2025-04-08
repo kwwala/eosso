@@ -19,32 +19,33 @@ Proposta de jogo inspirado em Undertale baseado em Pygame.
 - Pygame library
 
 ## File Structure
-É Osso/
-├── fonts/
-│   └── minecraftia.ttf
-├── images/
-│   ├── bone.png
-│   ├── heart32x.png
-│   ├── heart64x.png
-│   ├── heartdead64x.png
-│   ├── shadedicon.png
-│   ├── startScreen.png
-│   ├── startHoverScreen.png
-│   ├── clickScreen.png
-│   ├── playHoverScreen.png
-│   ├── menuHoverScreen.png
-│   └── deathScreenOverlay.png
-├── sounds/
-│   ├── menu.ogg
-│   ├── sans.ogg
-│   ├── determination.ogg
-│   ├── holiday.ogg
-│   ├── death1.wav
-│   ├── death2.wav
-│   ├── death3.wav
-│   ├── newlevel1.wav
-│   └── newlevel2.wav
-└── game.py
+
+    É Osso/
+    ├── fonts/
+    │   └── minecraftia.ttf
+    ├── images/
+    │   ├── bone.png
+    │   ├── heart32x.png
+    │   ├── heart64x.png
+    │   ├── heartdead64x.png
+    │   ├── shadedicon.png
+    │   ├── startScreen.png
+    │   ├── startHoverScreen.png
+    │   ├── clickScreen.png
+    │   ├── playHoverScreen.png
+    │   ├── menuHoverScreen.png
+    │   └── deathScreenOverlay.png
+    ├── sounds/
+    │   ├── menu.ogg
+    │   ├── sans.ogg
+    │   ├── determination.ogg
+    │   ├── holiday.ogg
+    │   ├── death1.wav
+    │   ├── death2.wav
+    │   ├── death3.wav
+    │   ├── newlevel1.wav
+    │   └── newlevel2.wav
+    └── game.py
 
 ## How to Play
 1. Run `game.py`
