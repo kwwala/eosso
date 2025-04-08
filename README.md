@@ -19,7 +19,6 @@ Proposta de jogo inspirado em Undertale baseado em Pygame.
 - Pygame library
 
 ## File Structure
-'''
 É Osso/
 ├── fonts/
 │   └── minecraftia.ttf
@@ -46,7 +45,7 @@ Proposta de jogo inspirado em Undertale baseado em Pygame.
 │   ├── newlevel1.wav
 │   └── newlevel2.wav
 └── game.py
-'''
+
 ## How to Play
 1. Run `game.py`
 2. Click "Play" on the start screen
